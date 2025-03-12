@@ -2,8 +2,8 @@
 <h1> UniCombine </h1>
 <hr>
 
-<h3>**UniCombine: Unified Multi-Conditional Combination with Diffusion Transformer**</h3>
-**Haoxuan Wang**, **Jinlong Peng**, Qingdong He, Hao Yang, Ying Jin, <br>
+<h3>UniCombine: Unified Multi-Conditional Combination with Diffusion Transformer</h3>
+<b>Haoxuan Wang</b>, Jinlong Peng, Qingdong He, Hao Yang, Ying Jin, <br>
  Jiafu Wu, Xiaobin Hu, Yanjie Pan, Zhenye Gan, Mingmin Chi, Bo Peng, Yabiao Wang
 
 <a href=""><img src="https://img.shields.io/badge/arXiv-A42C25.svg" alt="arXiv"></a>
