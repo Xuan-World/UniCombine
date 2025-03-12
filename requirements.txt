@@ -1,0 +1,8 @@
+transformers
+diffusers
+peft
+opencv-python
+ipdb
+optimum-quanto
+protobuf
+sentencepiece
