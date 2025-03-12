@@ -3,7 +3,7 @@
 
 <h3>UniCombine: Unified Multi-Conditional Combination with Diffusion Transformer</h3>
 <b>Haoxuan Wang</b>, Jinlong Peng, Qingdong He, Hao Yang, Ying Jin, <br>
- Jiafu Wu, Xiaobin Hu, Yanjie Pan, Zhenye Gan, Mingmin Chi, Bo Peng, Yabiao Wang
+ Jiafu Wu, Xiaobin Hu, Yanjie Pan, Zhenye Gan, Mingmin Chi, Bo Peng, Yabiao Wang <br>
 
 <a href=""><img src="https://img.shields.io/badge/arXiv-A42C25.svg" alt="arXiv"></a>
 <a href="https://huggingface.co/Xuan-World/UniCombine"><img src="https://img.shields.io/badge/🤗_HuggingFace-Model-ffbd45.svg" alt="HuggingFace"></a>
