@@ -1,6 +1,5 @@
 <div align="center">
 <h1> UniCombine </h1>
-<hr>
 
 <h3>UniCombine: Unified Multi-Conditional Combination with Diffusion Transformer</h3>
 <b>Haoxuan Wang</b>, Jinlong Peng, Qingdong He, Hao Yang, Ying Jin, <br>
@@ -10,7 +9,6 @@
 <a href="https://huggingface.co/Xuan-World/UniCombine"><img src="https://img.shields.io/badge/🤗_HuggingFace-Model-ffbd45.svg" alt="HuggingFace"></a>
 <a href="https://huggingface.co/datasets/Xuan-World/SubjectSpatial200K"><img src="https://img.shields.io/badge/🤗_HuggingFace-Dataset-ffbd45.svg" alt="HuggingFace"></a>
 </div>
-<hr>
 
 ## 🌠 Key Features
 
