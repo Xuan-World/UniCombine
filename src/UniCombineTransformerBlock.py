@@ -1,10 +1,9 @@
 import ipdb
 import torch
 from typing import List, Optional, Dict, Any
-
 from torch import FloatTensor, Tensor
 from diffusers.models.attention_processor import Attention, F
-from UniCombine.src.lora_switching_module import enable_lora,module_active_adapters
+from .lora_switching_module import enable_lora,module_active_adapters
 from diffusers.models.embeddings import apply_rotary_emb
 
 def attn_forward(

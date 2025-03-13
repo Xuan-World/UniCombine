@@ -52,8 +52,8 @@ def parse_args(input_args=None):
     parser.add_argument("--bbox_column", type=str, default="bbox", )
     parser.add_argument("--canny_column", type=str, default="canny", )
     parser.add_argument("--depth_column", type=str, default="depth", )
-    parser.add_argument("--condition_types", type=str, nargs='+', default=["fill", "subject"], )
-    parser.add_argument("--denoising_lora",type=str,default="ckpt/Denoising_LoRA/subject_fill_union",)
+    parser.add_argument("--condition_types", type=str, nargs='+', default=["canny", "depth"], )
+    parser.add_argument("--denoising_lora",type=str,default="ckpt/Denoising_LoRA/depth_canny_union",)
     parser.add_argument("--condition_lora_dir",type=str,default="ckpt/Condition_LoRA",)
     parser.add_argument("--max_sequence_length",type=int,default=512,help="Maximum sequence length to use with with the T5 text encoder")
     parser.add_argument("--work_dir",type=str,default="output/test_result")
@@ -77,11 +77,8 @@ def parse_args(input_args=None):
 
 
 def main(args):
-    # 1. set the accelerator and logger
-    accelerator_project_config = ProjectConfiguration(project_dir=args.work_dir)
     accelerator = Accelerator(
         mixed_precision=args.mixed_precision,
-        project_config=accelerator_project_config,
     )
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",

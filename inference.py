@@ -5,8 +5,8 @@ sys.path.append(os.path.abspath(os.path.join(current_dir, '..')))
 import torch
 from src.condition import Condition
 from PIL import Image
-from UniCombine.src.UniCombineTransformer2DModel import UniCombineTransformer2DModel
-from UniCombine.src.UniCombinePipeline import UniCombinePipeline
+from src.UniCombineTransformer2DModel import UniCombineTransformer2DModel
+from src.UniCombinePipeline import UniCombinePipeline
 from accelerate.utils import set_seed
 import json
 import argparse

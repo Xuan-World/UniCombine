@@ -4,7 +4,7 @@ from diffusers.configuration_utils import register_to_config
 from diffusers.pipelines import FluxPipeline
 from typing import Any, Callable, Dict, List, Optional, Union
 import torch
-from UniCombine.src.condition import Condition
+from .condition import Condition
 from diffusers.pipelines.flux.pipeline_flux import (
     FluxPipelineOutput,
     calculate_shift,

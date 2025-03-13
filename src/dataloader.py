@@ -3,7 +3,7 @@ import torch
 import io
 logger = get_logger(__name__)
 from PIL import Image
-from UniCombine.src.condition import Condition
+from .condition import Condition
 from diffusers.image_processor import VaeImageProcessor
 from datasets import load_dataset, concatenate_datasets
 def get_dataset(args):

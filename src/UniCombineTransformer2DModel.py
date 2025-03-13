@@ -1,20 +1,15 @@
 import copy
-
-import ipdb
-from torch import nn
 from diffusers.configuration_utils import register_to_config
 from typing import Any, Dict, Optional, Union, List, Tuple
 import numpy as np
 import torch
-
-from diffusers.models.modeling_outputs import Transformer2DModelOutput
 from diffusers.models.transformers.transformer_flux import (
     FluxTransformer2DModel,
     Transformer2DModelOutput,
 )
 from diffusers.utils import unscale_lora_layers,is_torch_version,USE_PEFT_BACKEND,scale_lora_layers,logging
-from UniCombine.src.lora_switching_module import enable_lora, module_active_adapters
-from UniCombine.src.UniCombineTransformerBlock import block_forward,single_block_forward
+from .lora_switching_module import enable_lora, module_active_adapters
+from .UniCombineTransformerBlock import block_forward,single_block_forward
 
 logger = logging.get_logger(__name__)
 class UniCombineTransformer2DModel(FluxTransformer2DModel):

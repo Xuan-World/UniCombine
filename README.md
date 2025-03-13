@@ -64,20 +64,6 @@ huggingface-cli download ostris/FLUX.1-schnell-training-adapter --local-dir ./ck
 > It is activated during the training process, and disabled during sampling. 
 > After the LoRA is trained, this adapter is no longer needed.
 
-## 🗂️ Download Dataset （optional）
-1. Download SubjectSpatial200K
-
-Place our SubjectSpatial200K dataset in the `dataset` directory. Of course, it's also acceptable to store them in other directories. <br>
-It may takes a long time.
-```bash
-huggingface-cli download Xuan-World/SubjectSpatial200K --repo-type dataset --local-dir ./dataset
-```
-
-2. Filter and Partition the SubjectSpatial200K dataset into training and testing sets.
-```bash
-python src/partition_dataset.py
-```
-
 ## 🎮 Inference on Demo
 - We provide the `inference.py` script to offer a simplest and fastest way for you to run our model. <br>
 - Replace the arguments `--version` from `training-based` to `training-free`, then you don't need to provide the **Denoising-LoRA** module.
@@ -171,7 +157,48 @@ python inference.py \
 under a night sky where the full moon casts silvery trails across waves, with distant seagulls gliding through star-dappled darkness."
 ```
 
-## 🌱 Train
+## 🗂️ Download Dataset （optional）
+1. Download SubjectSpatial200K
+
+Place our SubjectSpatial200K dataset in the `dataset` directory. Of course, it's also acceptable to store them in other directories. <br>
+
+```bash
+huggingface-cli download Xuan-World/SubjectSpatial200K --repo-type dataset --local-dir ./dataset
+```
+
+2. Filter and Partition the SubjectSpatial200K dataset into training and testing sets.
+
+The default partition scheme is identical to our paper.
+You can customize it as you wish.
+
+```bash
+python src/partition_dataset.py \
+--dataset dataset/SubjectSpatial200K/data_labeled \
+--output_dir dataset/split_SubjectSpatial200K \
+--partition train
+```
+```bash
+python src/partition_dataset.py \
+--dataset dataset/SubjectSpatial200K/Collection3/data_labeled \
+--output_dir dataset/split_SubjectSpatial200K/Collection3 \
+--partition train
+```
+```bash
+python src/partition_dataset.py \
+--dataset dataset/SubjectSpatial200K/data_labeled \
+--output_dir dataset/split_SubjectSpatial200K \
+--partition test
+```
+```bash
+python src/partition_dataset.py \
+--dataset dataset/SubjectSpatial200K/Collection3/data_labeled \
+--output_dir dataset/split_SubjectSpatial200K/Collection3 \
+--partition test
+```
+## 🧩 Train in single-conditional setting
+Refer to https://github.com/Yuanshi9815/OminiControl.  We will release our reimplementation using diffusers soon.
+
+## 🔥 Train in multi-conditional setting
 Use our SubjectSpatial200K dataset or your customized multi-conditional dataset to train your Denoising-LoRA module. 
 1. Configure Accelerate Environment
 ```bash
@@ -189,7 +216,7 @@ accelerate launch train.py
 python test.py
 ```
 
-## Citation
+## 📚 Citation
 ```
 
 ```
