@@ -86,7 +86,7 @@ python inference.py \
 --json "examples/doll/1116_rank0_A spooky themed gothic doll..json" \
 --version training-based
 ```
-Custom Prompts：adjust the scale of `--denoising_lora_weight` to get a balance between the editability and the consistency.
+Custom Prompts：
 ```bash
 python inference.py \
 --condition_types canny subject \
@@ -111,7 +111,7 @@ python inference.py \
 --json "examples/car/2532_rank0_A sturdy ATV with rugged looks..json" \
 --version training-based
 ```
-Custom Prompts：adjust the scale of --denoising_lora_weight to get a balance between the editability and the consistency.
+Custom Prompts：
 ```bash
 python inference.py \
 --condition_types depth subject \

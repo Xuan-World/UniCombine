@@ -1,5 +1,4 @@
 import sys,os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1,2,3,4,5"
 current_dir = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(current_dir, '..')))
 import argparse
@@ -8,36 +7,33 @@ import logging
 import math
 import os
 from contextlib import contextmanager
-from pathlib import Path
 import functools
 import torch
 import torch.utils.checkpoint
 import transformers
 from accelerate import Accelerator
 from accelerate.logging import get_logger
-from accelerate.utils import ProjectConfiguration, set_seed
+from accelerate.utils import set_seed
 from packaging import version
 from peft import LoraConfig
 from tqdm.auto import tqdm
 from transformers import CLIPTokenizer, PretrainedConfig, T5TokenizerFast
-from UniCombine.src.hook import save_model_hook,load_model_hook
+from src.hook import save_model_hook,load_model_hook
 import diffusers
 from diffusers import (
     AutoencoderKL,
     FlowMatchEulerDiscreteScheduler,
     FluxPipeline,
 )
-from UniCombine.src.UniCombineTransformer2DModel import UniCombineTransformer2DModel
-from diffusers.image_processor import VaeImageProcessor
+from src.UniCombineTransformer2DModel import UniCombineTransformer2DModel
 from diffusers.optimization import get_scheduler
 from diffusers.training_utils import cast_training_params, compute_density_for_timestep_sampling, compute_loss_weighting_for_sd3
 from diffusers.utils import check_min_version, is_wandb_available
 from diffusers.utils.import_utils import is_xformers_available
-from UniCombine.src.dataloader import get_dataset,prepare_dataset,collate_fn
+from src.dataloader import get_dataset,prepare_dataset,collate_fn
 if is_wandb_available():
     pass
-from UniCombine.src.text_encoder import encode_prompt
-
+from src.text_encoder import encode_prompt
 # Will error if the minimal version of diffusers is not installed. Remove at your own risks.
 check_min_version("0.32.0.dev0")
 
@@ -88,197 +84,68 @@ def import_model_class_from_model_name_or_path(
 
 def parse_args(input_args=None):
     parser = argparse.ArgumentParser(description="Simple example of a training script.")
-    parser.add_argument(
-        "--pretrained_model_name_or_path",type=str,default="ckpt/FLUX.1-schnell",
-        help="Path to pretrained model or model identifier from huggingface.co/models.",
-    )
-    parser.add_argument(
-        "--transformer",type=str,default="ckpt/FLUX.1-schnell",
-        help="Path to flux transformer model from huggingface.co/models.",
-    )
-    parser.add_argument(
-        "--revision",type=str,default=None,
-        help="Revision of pretrained model identifier from huggingface.co/models.",
-    )
-    parser.add_argument(
-        "--variant",type=str,default=None,
-        help="Variant of the model files of the pretrained model identifier from huggingface.co/models, 'e.g.' fp16",
-    )
-    parser.add_argument(
-        "--dataset_name",type=str,default=[
+    parser.add_argument( "--pretrained_model_name_or_path",type=str,default="ckpt/FLUX.1-schnell")
+    parser.add_argument("--transformer",type=str,default="ckpt/FLUX.1-schnell",)
+    parser.add_argument("--dataset_name",type=str,default=[
             "datasets/split_SubjectSpatial200K/train",
             "datasets/split_SubjectSpatial200K/Collection3/train",
         ],
     )
-    parser.add_argument(
-        "--image_column", type=str, default="image",
-        help="The column of the dataset containing an image."
-    )
-    parser.add_argument(
-        "--bbox_column",type=str,default="bbox",
-    )
-    parser.add_argument(
-        "--canny_column",type=str,default="canny",
-    )
-    parser.add_argument(
-        "--depth_column",type=str,default="depth",
-    )
-    parser.add_argument(
-        "--condition_types",type=str,default=["depth","canny"],
-    )
-    parser.add_argument(
-        "--max_sequence_length",type=int,default=512,
-        help="Maximum sequence length to use with with the T5 text encoder",
-    )
-    parser.add_argument(
-        "--shared_expert_lora",type=str,default="depth_canny_union",
-    )
-    parser.add_argument(
-        "--output_dir",type=str,default="UniCombine_depth_canny",
-        help="The output directory where the model predictions and checkpoints will be written.",
-    )
-    parser.add_argument(
-        "--cache_dir",type=str,default="cache",
-        help="The directory where the downloaded models and datasets will be stored.",
-    )
-    parser.add_argument(
-        "--seed", type=int, default=0, help="A seed for reproducible training."
-    )
-    parser.add_argument(
-        "--resolution",type=int,default=512,
-    )
-    parser.add_argument(
-        "--train_batch_size", type=int, default=1,
-        help="Batch size (per device) for the training dataloader."
-    )
-    parser.add_argument(
-        "--num_train_epochs", type=int, default=5
-    )
-    parser.add_argument(
-        "--max_train_steps", type=int, default=30000,
-        help="Total number of training steps to perform.  If provided, overrides num_train_epochs.",
-    )
-    parser.add_argument(
-        "--gradient_accumulation_steps",type=int,default=2,
-        help="Number of updates steps to accumulate before performing a backward/update pass.",
-    )
-    parser.add_argument(
-        "--learning_rate",type=float,default=1e-4,
-        help="Initial learning rate (after the potential warmup period) to use.",
-    )
-    parser.add_argument(
-        "--scale_lr",action="store_true",default=False,
-        help="Scale the learning rate by the number of GPUs, gradient accumulation steps, and batch size.",
-    )
-    parser.add_argument(
-        "--lr_scheduler",type=str,default="cosine",
-        help=(
-            'The scheduler type to use. Choose between ["linear", "cosine", "cosine_with_restarts", "polynomial",'
-            ' "constant", "constant_with_warmup"]'
-        ),
-    )
-    parser.add_argument(
-        "--lr_warmup_steps", type=int, default=500,
-        help="Number of steps for the warmup in the lr scheduler."
-    )
-    parser.add_argument(
-        "--weighting_scheme",type=str,default="none",
+    parser.add_argument("--image_column", type=str, default="image",)
+    parser.add_argument("--bbox_column",type=str,default="bbox",)
+    parser.add_argument("--canny_column",type=str,default="canny",)
+    parser.add_argument("--depth_column",type=str,default="depth",)
+    parser.add_argument("--condition_types",type=str,nargs='+',default=["depth","canny"],)
+    parser.add_argument("--max_sequence_length",type=int,default=512,help="Maximum sequence length to use with with the T5 text encoder")
+    parser.add_argument("--denoising_lora",type=str,default="depth_canny_union",)
+    parser.add_argument("--work_dir",type=str,default="output/train_result",)
+    parser.add_argument("--cache_dir",type=str,default="cache",)
+    parser.add_argument("--seed", type=int, default=0, help="A seed for reproducible training.")
+    parser.add_argument("--resolution",type=int,default=512,)
+    parser.add_argument("--train_batch_size", type=int, default=1)
+    parser.add_argument("--num_train_epochs", type=int, default=None)
+    parser.add_argument("--max_train_steps", type=int, default=30000,)
+    parser.add_argument("--gradient_accumulation_steps",type=int,default=2)
+    parser.add_argument("--learning_rate",type=float,default=1e-4)
+    parser.add_argument("--scale_lr",action="store_true",default=False,)
+    parser.add_argument("--lr_scheduler",type=str,default="cosine",
+                        choices=["linear", "cosine", "cosine_with_restarts", "polynomial","constant", "constant_with_warmup"])
+    parser.add_argument("--lr_warmup_steps", type=int, default=500,)
+    parser.add_argument("--weighting_scheme",type=str,default="none",
         choices=["sigma_sqrt", "logit_normal", "mode", "cosmap", "none"],
         help=('We default to the "none" weighting scheme for uniform sampling and uniform loss'),
     )
     parser.add_argument(
-        "--logit_mean", type=float, default=0.0, help="mean to use when using the `'logit_normal'` weighting scheme."
-    )
-    parser.add_argument(
-        "--logit_std", type=float, default=1.0, help="std to use when using the `'logit_normal'` weighting scheme."
-    )
-    parser.add_argument(
-        "--mode_scale",type=float,default=1.29,
-        help="Scale of mode weighting scheme. Only effective when using the `'mode'` as the `weighting_scheme`.",
-    )
-    parser.add_argument(
-        "--allow_tf32",action="store_true",
-        help=(
-            "Whether or not to allow TF32 on Ampere GPUs. Can be used to speed up training. For more information, see"
-            " https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices"
-        ),
-    )
-    parser.add_argument(
         "--dataloader_num_workers",type=int,default=0,
         help="Number of subprocesses to use for data loading. 0 means that the data will be loaded in the main process."
-    )
-    parser.add_argument(
-        "--use_8bit_adam",default = False,
-        help="Whether or not to use 8-bit Adam from bitsandbytes. Ignored if optimizer is not set to AdamW",
     )
     parser.add_argument("--adam_beta1", type=float, default=0.9, help="The beta1 parameter for the Adam optimizer.")
     parser.add_argument("--adam_beta2", type=float, default=0.999, help="The beta2 parameter for the Adam optimizer.")
     parser.add_argument("--adam_weight_decay", type=float, default=1e-2, help="Weight decay to use.")
     parser.add_argument("--adam_epsilon", type=float, default=1e-08, help="Epsilon value for the Adam optimizer")
     parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
-    parser.add_argument(
-        "--logging_dir",type=str,default="logs",
-        help=(
-            "[TensorBoard](https://www.tensorflow.org/tensorboard) log directory. Will default to"
-            " *output_dir/runs/**CURRENT_DATETIME_HOSTNAME***."
-        ),
-    )
-    parser.add_argument(
-        "--mixed_precision",type=str,default="bf16",
-        choices=["no", "fp16", "bf16"],
-        help=(
-            "Whether to use mixed precision. Choose between fp16 and bf16 (bfloat16). Bf16 requires PyTorch >="
-            " 1.10.and an Nvidia Ampere GPU.  Default to the value of accelerate config of the current system or the"
-            " flag passed with the `accelerate.launch` command. Use this argument to override the accelerate config."
-        ),
-    )
-    parser.add_argument(
-        "--report_to", type=str, default=None,
-        help=(
-            'The integration to report the results and logs to. Supported platforms are `"tensorboard"`'
-            ' (default), `"wandb"` and `"comet_ml"`. Use `"all"` to report to all integrations.'
-        ),
-    )
+    parser.add_argument("--mixed_precision",type=str,default="bf16", choices=["no", "fp16", "bf16"],)
     parser.add_argument("--local_rank", type=int, default=-1, help="For distributed training: local_rank")
-    parser.add_argument(
-        "--checkpointing_steps",type=int,default=5000,
-        help="Save a checkpoint of the training state every X updates."
-    )
-    parser.add_argument(
-        "--resume_from_checkpoint",type=str,default=None,
-        help=(
-            "Whether training should be resumed from a previous checkpoint. Use a path saved by"
-            ' `--checkpointing_steps`, or `"latest"` to automatically select the last available checkpoint.'
-        ),
-    )
-    parser.add_argument(
-        "--enable_xformers_memory_efficient_attention", default=True, help="Whether or not to use xformers."
-    )
-    parser.add_argument(
-        "--rank",type=int,default=4,
-        help=("The dimension of the LoRA update matrices."),
-    )
+    parser.add_argument("--checkpointing_steps",type=int,default=1,)
+    parser.add_argument("--resume_from_checkpoint",type=str,default=None,)
+    parser.add_argument("--enable_xformers_memory_efficient_attention", default=True)
+    parser.add_argument("--rank",type=int,default=4,help="The dimension of the LoRA rank.")
+
     args = parser.parse_args()
+    args.revision = None
+    args.variant = None
+    args.work_dir = os.path.join(args.work_dir,args.denoising_lora)
     env_local_rank = int(os.environ.get("LOCAL_RANK", -1))
     if env_local_rank != -1 and env_local_rank != args.local_rank:
         args.local_rank = env_local_rank
-
     return args
 
 
 def main(args):
-    logging_dir = Path(args.output_dir, args.logging_dir)
-    accelerator_project_config = ProjectConfiguration(project_dir=args.output_dir, logging_dir=logging_dir)
     accelerator = Accelerator(
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         mixed_precision=args.mixed_precision,
-        log_with=args.report_to,
-        project_config=accelerator_project_config,
     )
-
-    # Disable AMP for MPS. A technique for accelerating machine learning computations on iOS and macOS devices.
-    if torch.backends.mps.is_available():
-        accelerator.native_amp = False
 
     # Make one log on every process with the configuration for debugging.
     logging.basicConfig(
@@ -300,8 +167,7 @@ def main(args):
 
     # Handle the repository creation
     if accelerator.is_main_process:
-        if args.output_dir is not None:
-            os.makedirs(args.output_dir, exist_ok=True)
+        os.makedirs(args.work_dir, exist_ok=True)
 
     # For mixed precision training we cast all non-trainable weights (vae, non-lora text_encoder and non-lora unet) to half-precision
     # as these weights are only used for inference, keeping weights in full precision is not required.
@@ -348,7 +214,6 @@ def main(args):
         variant=args.variant,
     ).to(accelerator.device, dtype=weight_dtype)
     vae_scale_factor = 2 ** (len(vae.config.block_out_channels) - 1)
-    image_processor = VaeImageProcessor(vae_scale_factor=vae_scale_factor * 2 ,do_resize=True)
 
 
     transformer = UniCombineTransformer2DModel.from_pretrained(
@@ -417,11 +282,6 @@ def main(args):
             raise ValueError("xformers is not available. Make sure it is installed correctly")
 
 
-    # Enable TF32 for faster training on Ampere GPUs,
-    # cf https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices
-    if args.allow_tf32 and torch.cuda.is_available():
-        torch.backends.cuda.matmul.allow_tf32 = True
-
     if args.scale_lr:
         args.learning_rate = args.learning_rate * args.gradient_accumulation_steps * args.train_batch_size * accelerator.num_processes
 
@@ -433,17 +293,7 @@ def main(args):
     transformer_lora_parameters = list(filter(lambda p: p.requires_grad, transformer.parameters()))
 
     # Initialize the optimizer
-    if args.use_8bit_adam:
-        try:
-            import bitsandbytes as bnb
-        except ImportError:
-            raise ImportError(
-                "To use 8-bit Adam, please install the bitsandbytes library: `pip install bitsandbytes`."
-            )
-
-        optimizer_cls = bnb.optim.AdamW8bit
-    else:
-        optimizer_cls = torch.optim.AdamW
+    optimizer_cls = torch.optim.AdamW
 
     optimizer = optimizer_cls(
         transformer_lora_parameters,
@@ -548,7 +398,7 @@ def main(args):
             path = os.path.basename(args.resume_from_checkpoint)
         else:
             # Get the most recent checkpoint
-            dirs = os.listdir(args.output_dir)
+            dirs = os.listdir(args.work_dir)
             dirs = [d for d in dirs if d.startswith("checkpoint")]
             dirs = sorted(dirs, key=lambda x: int(x.split("-")[1]))
             path = dirs[-1] if len(dirs) > 0 else None
@@ -561,7 +411,7 @@ def main(args):
             initial_global_step = 0
         else:
             accelerator.print(f"Resuming from checkpoint {path}")
-            accelerator.load_state(os.path.join(args.output_dir, path))
+            accelerator.load_state(os.path.join(args.work_dir, path))
             global_step = int(path.split("-")[1])
             initial_global_step = global_step
             first_epoch = global_step // num_update_steps_per_epoch
@@ -638,9 +488,6 @@ def main(args):
                 u = compute_density_for_timestep_sampling(
                     weighting_scheme=args.weighting_scheme,
                     batch_size=bsz,
-                    logit_mean=args.logit_mean,
-                    logit_std=args.logit_std,
-                    mode_scale=args.mode_scale,
                 )
                 indices = (u * noise_scheduler_copy.config.num_train_timesteps).long()
                 timesteps = noise_scheduler_copy.timesteps[indices].to(device=accelerator.device)
@@ -726,7 +573,7 @@ def main(args):
                 global_step += 1
                 if accelerator.is_main_process:
                     if global_step % args.checkpointing_steps == 0:
-                        save_path = os.path.join(args.output_dir, f"checkpoint-{global_step}")
+                        save_path = os.path.join(args.work_dir, f"checkpoint-{global_step}")
                         accelerator.save_state(save_path)
                         logger.info(f"Saved state to {save_path}")
             logs = {"step_loss": loss.detach().item(), "lr": lr_scheduler.get_last_lr()[0]}
