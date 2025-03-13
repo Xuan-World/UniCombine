@@ -196,10 +196,10 @@ python src/partition_dataset.py \
 --partition test
 ```
 ## 🧩 Train in single-conditional setting
-Refer to https://github.com/Yuanshi9815/OminiControl.  We will release our reimplementation using diffusers soon.
+Refer to https://github.com/Yuanshi9815/OminiControl to train your **Condition-LoRA** modules.  We will release our reimplementation using diffusers soon.
 
 ## 🔥 Train in multi-conditional setting
-Use our SubjectSpatial200K dataset or your customized multi-conditional dataset to train your Denoising-LoRA module. 
+Use our SubjectSpatial200K dataset or your customized multi-conditional dataset to train your **Denoising-LoRA** module. 
 1. Configure Accelerate Environment
 ```bash
 accelerate config
