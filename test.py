@@ -44,17 +44,18 @@ def parse_args(input_args=None):
     parser.add_argument(
         "--dataset_name",type=str,
         default=[
-            "datasets/split_SubjectSpatial200K/test",
-            "datasets/split_SubjectSpatial200K/Collection3/test"
+            "dataset/split_SubjectSpatial200K/test",
+            "dataset/split_SubjectSpatial200K/Collection3/test"
         ],
     )
     parser.add_argument("--image_column", type=str, default="image", )
     parser.add_argument("--bbox_column", type=str, default="bbox", )
     parser.add_argument("--canny_column", type=str, default="canny", )
     parser.add_argument("--depth_column", type=str, default="depth", )
-    parser.add_argument("--condition_types", type=str, nargs='+', default=["depth", "canny"], )
-    parser.add_argument("--max_sequence_length",type=int,default=512,help="Maximum sequence length to use with with the T5 text encoder")
+    parser.add_argument("--condition_types", type=str, nargs='+', default=["fill", "subject"], )
     parser.add_argument("--denoising_lora",type=str,default="ckpt/Denoising_LoRA/subject_fill_union",)
+    parser.add_argument("--condition_lora_dir",type=str,default="ckpt/Condition_LoRA",)
+    parser.add_argument("--max_sequence_length",type=int,default=512,help="Maximum sequence length to use with with the T5 text encoder")
     parser.add_argument("--work_dir",type=str,default="output/test_result")
     parser.add_argument("--cache_dir",type=str,default="cache")
     parser.add_argument("--seed", type=int, default=0)
@@ -119,7 +120,7 @@ def main(args):
     ).to(accelerator.device, dtype=weight_dtype)
     lora_names = args.condition_types
     for condition_type in lora_names:
-        transformer.load_lora_adapter(f"ckpt/{condition_type}.safetensors", adapter_name=condition_type)
+        transformer.load_lora_adapter(f"{args.condition_lora_dir}/{condition_type}.safetensors", adapter_name=condition_type)
     logger.info("You are working on the following condition types: {}".format(lora_names))
 
     # 6. get the inference pipeline.
