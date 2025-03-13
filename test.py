@@ -16,9 +16,9 @@ import diffusers
 from diffusers import FluxPipeline
 import json
 from diffusers.image_processor import VaeImageProcessor
-from UniCombine.src.condition import Condition
+from src.condition import Condition
 from diffusers.utils import check_min_version, is_wandb_available
-from UniCombine.src.dataloader import get_dataset,prepare_dataset,collate_fn
+from src.dataloader import get_dataset,prepare_dataset,collate_fn
 from datetime import datetime
 if is_wandb_available():
     pass
@@ -28,8 +28,8 @@ check_min_version("0.32.0.dev0")
 
 logger = get_logger(__name__, log_level="INFO")
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
-from UniCombine.src.UniCombineTransformer2DModel import UniCombineTransformer2DModel
-from UniCombine.src.UniCombinePipeline import UniCombinePipeline
+from src.UniCombineTransformer2DModel import UniCombineTransformer2DModel
+from src.UniCombinePipeline import UniCombinePipeline
 
 
 def encode_images(pixels: torch.Tensor, vae: torch.nn.Module, weight_dtype):
@@ -39,16 +39,8 @@ def encode_images(pixels: torch.Tensor, vae: torch.nn.Module, weight_dtype):
 
 def parse_args(input_args=None):
     parser = argparse.ArgumentParser(description="testing script.")
-    parser.add_argument(
-        "--pretrained_model_name_or_path",
-        type=str,
-        default="ckpt/FLUX.1-schnell",
-    )
-    parser.add_argument(
-        "--transformer",
-        type=str,
-        default="ckpt/FLUX.1-schnell/transformer",
-    )
+    parser.add_argument("--pretrained_model_name_or_path", type=str,default="ckpt/FLUX.1-schnell",)
+    parser.add_argument("--transformer",type=str,default="ckpt/FLUX.1-schnell/transformer",)
     parser.add_argument(
         "--dataset_name",type=str,
         default=[
@@ -56,52 +48,20 @@ def parse_args(input_args=None):
             "datasets/split_SubjectSpatial200K/Collection3/test"
         ],
     )
-    parser.add_argument(
-        "--image_column", type=str, default="image",
-        help="The column of the dataset containing an image."
-    )
-    parser.add_argument(
-        "--bbox_column",type=str,default="bbox",
-    )
-    parser.add_argument(
-        "--canny_column",type=str,default="canny",
-    )
-    parser.add_argument(
-        "--depth_column",type=str,default="depth",
-    )
-    parser.add_argument(
-        "--condition_types",type=str,default=["fill","subject"],
-    )
-    parser.add_argument(
-        "--max_sequence_length",type=int,default=512,
-        help="Maximum sequence length to use with with the T5 text encoder",
-    )
-    parser.add_argument(
-        "--denoising_lora",type=str,default="../ckpt_UniCombine/DiTControl_subject_fill/checkpoint-30000/subject_fill_union",
-    )
-    parser.add_argument(
-        "--work_dir",type=str,default="test_result",
-        help="The output directory where the model predictions and checkpoints will be written.",
-    )
-    parser.add_argument(
-        "--cache_dir",type=str,default="cache",
-        help="The directory where the downloaded models and datasets will be stored.",
-    )
-    parser.add_argument(
-        "--seed", type=int, default=0
-    )
-    parser.add_argument(
-        "--resolution",type=int,default=512,
-    )
-    parser.add_argument(
-        "--batch_size", type=int, default=8, help="Batch size (per device) for dataloader."
-    )
-    parser.add_argument(
-        "--dataloader_num_workers",type=int,default=0,
-    )
-    parser.add_argument(
-        "--mixed_precision",type=str,default="bf16",choices=["no", "fp16", "bf16"],
-    )
+    parser.add_argument("--image_column", type=str, default="image", )
+    parser.add_argument("--bbox_column", type=str, default="bbox", )
+    parser.add_argument("--canny_column", type=str, default="canny", )
+    parser.add_argument("--depth_column", type=str, default="depth", )
+    parser.add_argument("--condition_types", type=str, nargs='+', default=["depth", "canny"], )
+    parser.add_argument("--max_sequence_length",type=int,default=512,help="Maximum sequence length to use with with the T5 text encoder")
+    parser.add_argument("--denoising_lora",type=str,default="ckpt/Denoising_LoRA/subject_fill_union",)
+    parser.add_argument("--work_dir",type=str,default="output/test_result")
+    parser.add_argument("--cache_dir",type=str,default="cache")
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--resolution",type=int,default=512,)
+    parser.add_argument("--batch_size", type=int, default=8)
+    parser.add_argument("--dataloader_num_workers",type=int,default=0,)
+    parser.add_argument("--mixed_precision",type=str,default="bf16",choices=["no", "fp16", "bf16"])
     parser.add_argument("--local_rank", type=int, default=-1, help="For distributed running: local_rank")
 
 

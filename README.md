@@ -50,11 +50,32 @@ huggingface-cli download Xuan-World/UniCombine --include "Condition_LoRA/*" --lo
 huggingface-cli download Xuan-World/UniCombine --include "Denoising_LoRA/*" --local-dir ./ckpt/Denoising_LoRA
 ```
 
+4. FLUX.1-schnell-training-assistant-LoRA (optional) 
+
+Download it if you want to train your LoRA on the FLUX-schnell.
+
+```bash
+huggingface-cli download ostris/FLUX.1-schnell-training-adapter --local-dir ./ckpt/FLUX.1-schnell-training-adapter
+```
+
+> Schnell is a step distilled model, meaning it can generate an image in just a few steps. 
+> However, this makes it impossible to train on it directly because every step you train breaks down the compression more and more. 
+> With this adapter enabled during training, that doesnt happen. 
+> It is activated during the training process, and disabled during sampling. 
+> After the LoRA is trained, this adapter is no longer needed.
+
 ## 🗂️ Download Dataset （optional）
+1. Download SubjectSpatial200K
+
 Place our SubjectSpatial200K dataset in the `dataset` directory. Of course, it's also acceptable to store them in other directories. <br>
-The dataset can be used in the "**Train**" and "**Test**" part.  It may takes a long time.
+It may takes a long time.
 ```bash
 huggingface-cli download Xuan-World/SubjectSpatial200K --repo-type dataset --local-dir ./dataset
+```
+
+2. Filter and Partition the SubjectSpatial200K dataset into training and testing sets.
+```bash
+python src/partition_dataset.py
 ```
 
 ## 🎮 Inference on Demo

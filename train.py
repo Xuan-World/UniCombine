@@ -34,6 +34,7 @@ from src.dataloader import get_dataset,prepare_dataset,collate_fn
 if is_wandb_available():
     pass
 from src.text_encoder import encode_prompt
+from datetime import datetime
 # Will error if the minimal version of diffusers is not installed. Remove at your own risks.
 check_min_version("0.32.0.dev0")
 
@@ -86,9 +87,17 @@ def parse_args(input_args=None):
     parser = argparse.ArgumentParser(description="Simple example of a training script.")
     parser.add_argument( "--pretrained_model_name_or_path",type=str,default="ckpt/FLUX.1-schnell")
     parser.add_argument("--transformer",type=str,default="ckpt/FLUX.1-schnell",)
+    parser.add_argument("--work_dir",type=str,default="output/train_result",)
+    parser.add_argument("--output_denoising_lora",type=str,default="depth_canny_union",)
+    parser.add_argument("--pretrained_condition_lora_dir",type=str,default="ckpt/Condition_LoRA",)
+    parser.add_argument("--training_adapter",type=str,default="ckpt/FLUX.1-schnell-training-adapter",)
+    parser.add_argument("--checkpointing_steps",type=int,default=1,)
+    parser.add_argument("--resume_from_checkpoint",type=str,default=None,)
+    parser.add_argument("--rank",type=int,default=4,help="The dimension of the LoRA rank.")
+
     parser.add_argument("--dataset_name",type=str,default=[
-            "datasets/split_SubjectSpatial200K/train",
-            "datasets/split_SubjectSpatial200K/Collection3/train",
+            "dataset/split_SubjectSpatial200K/train",
+            "dataset/split_SubjectSpatial200K/Collection3/train",
         ],
     )
     parser.add_argument("--image_column", type=str, default="image",)
@@ -96,9 +105,9 @@ def parse_args(input_args=None):
     parser.add_argument("--canny_column",type=str,default="canny",)
     parser.add_argument("--depth_column",type=str,default="depth",)
     parser.add_argument("--condition_types",type=str,nargs='+',default=["depth","canny"],)
+
     parser.add_argument("--max_sequence_length",type=int,default=512,help="Maximum sequence length to use with with the T5 text encoder")
-    parser.add_argument("--denoising_lora",type=str,default="depth_canny_union",)
-    parser.add_argument("--work_dir",type=str,default="output/train_result",)
+    parser.add_argument("--mixed_precision",type=str,default="bf16", choices=["no", "fp16", "bf16"],)
     parser.add_argument("--cache_dir",type=str,default="cache",)
     parser.add_argument("--seed", type=int, default=0, help="A seed for reproducible training.")
     parser.add_argument("--resolution",type=int,default=512,)
@@ -106,6 +115,7 @@ def parse_args(input_args=None):
     parser.add_argument("--num_train_epochs", type=int, default=None)
     parser.add_argument("--max_train_steps", type=int, default=30000,)
     parser.add_argument("--gradient_accumulation_steps",type=int,default=2)
+
     parser.add_argument("--learning_rate",type=float,default=1e-4)
     parser.add_argument("--scale_lr",action="store_true",default=False,)
     parser.add_argument("--lr_scheduler",type=str,default="cosine",
@@ -115,26 +125,19 @@ def parse_args(input_args=None):
         choices=["sigma_sqrt", "logit_normal", "mode", "cosmap", "none"],
         help=('We default to the "none" weighting scheme for uniform sampling and uniform loss'),
     )
-    parser.add_argument(
-        "--dataloader_num_workers",type=int,default=0,
-        help="Number of subprocesses to use for data loading. 0 means that the data will be loaded in the main process."
-    )
+    parser.add_argument("--dataloader_num_workers",type=int,default=0)
     parser.add_argument("--adam_beta1", type=float, default=0.9, help="The beta1 parameter for the Adam optimizer.")
     parser.add_argument("--adam_beta2", type=float, default=0.999, help="The beta2 parameter for the Adam optimizer.")
     parser.add_argument("--adam_weight_decay", type=float, default=1e-2, help="Weight decay to use.")
     parser.add_argument("--adam_epsilon", type=float, default=1e-08, help="Epsilon value for the Adam optimizer")
     parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
-    parser.add_argument("--mixed_precision",type=str,default="bf16", choices=["no", "fp16", "bf16"],)
     parser.add_argument("--local_rank", type=int, default=-1, help="For distributed training: local_rank")
-    parser.add_argument("--checkpointing_steps",type=int,default=1,)
-    parser.add_argument("--resume_from_checkpoint",type=str,default=None,)
     parser.add_argument("--enable_xformers_memory_efficient_attention", default=True)
-    parser.add_argument("--rank",type=int,default=4,help="The dimension of the LoRA rank.")
 
     args = parser.parse_args()
     args.revision = None
     args.variant = None
-    args.work_dir = os.path.join(args.work_dir,args.denoising_lora)
+    args.work_dir = os.path.join(args.work_dir,f"{datetime.now().strftime("%y_%m_%d-%H:%M")}")
     env_local_rank = int(os.environ.get("LOCAL_RANK", -1))
     if env_local_rank != -1 and env_local_rank != args.local_rank:
         args.local_rank = env_local_rank
@@ -225,9 +228,9 @@ def main(args):
     # load lora !!!!!
     lora_names = args.condition_types
     for condition_type in lora_names:
-        transformer.load_lora_adapter(f"ckpt/{condition_type}.safetensors", adapter_name=condition_type)
+        transformer.load_lora_adapter(f"{args.pretrained_condition_lora_dir}/{condition_type}.safetensors", adapter_name=condition_type)
 
-    transformer.load_lora_adapter("ckpt/flux-schnell-lora-adapter/pytorch_lora_weights.safetensors", adapter_name="schnell_assistant")
+    transformer.load_lora_adapter(f"{args.training_adapter}/pytorch_lora_weights.safetensors", adapter_name="schnell_assistant")
 
     logger.info("All models loaded successfully")
     # freeze parameters of models to save more memory
@@ -261,11 +264,11 @@ def main(args):
             "norm.linear",
         ]+single_transformer_blocks_lora,
     )
-    transformer.add_adapter(transformer_lora_config,adapter_name=args.shared_expert_lora)
-    logger.info(f"Trainable lora: {args.shared_expert_lora} is loaded successfully")
+    transformer.add_adapter(transformer_lora_config,adapter_name=args.output_denoising_lora)
+    logger.info(f"Trainable lora: {args.output_denoising_lora} is loaded successfully")
     # hook
-    accelerator.register_save_state_pre_hook(functools.partial(save_model_hook,wanted_model=transformer,accelerator=accelerator,adapter_names=[args.shared_expert_lora]))
-    accelerator.register_load_state_pre_hook(functools.partial(load_model_hook,wanted_model=transformer,accelerator=accelerator,adapter_names=[args.shared_expert_lora]))
+    accelerator.register_save_state_pre_hook(functools.partial(save_model_hook,wanted_model=transformer,accelerator=accelerator,adapter_names=[args.output_denoising_lora]))
+    accelerator.register_load_state_pre_hook(functools.partial(load_model_hook,wanted_model=transformer,accelerator=accelerator,adapter_names=[args.output_denoising_lora]))
     logger.info("Hooks for save and load is ok.")
 
     if args.enable_xformers_memory_efficient_attention:
@@ -353,8 +356,8 @@ def main(args):
     logger.info(f"lr_scheduler:{args.lr_scheduler} initialized successfully.")
 
     with preserve_requires_grad(transformer):
-        transformer.set_adapters([i for i in lora_names] + [args.shared_expert_lora] + ["schnell_assistant"])
-    logger.info(f"Set Adapters:{[i for i in lora_names] + [args.shared_expert_lora] + ["schnell_assistant"]}")
+        transformer.set_adapters([i for i in lora_names] + [args.output_denoising_lora] + ["schnell_assistant"])
+    logger.info(f"Set Adapters:{[i for i in lora_names] + [args.output_denoising_lora] + ["schnell_assistant"]}")
 
     # Prepare everything with our `accelerator`.
     transformer, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
