@@ -34,6 +34,17 @@ conda create -n unicombine python=3.12
 conda activate unicombine
 pip install -r requirements.txt
 ```
+Due to the issues of _diffusers_ library, you need to update the `cite-package` code manually.
+You can find the location of your _diffusers_ library by running the following command.
+```bash
+pip show diffusers
+```
+
+Then add the following entry to the dictionary `_SET_ADAPTER_SCALE_FN_MAPPING` located in `diffusers/loaders/peft.py`:
+```
+"UniCombineTransformer2DModel": lambda model_cls, weights: weights
+```
+
 ## 📥 Download Models 
 Place all the model weights in the `ckpt` directory. Of course, it's also acceptable to store them in other directories.
 1. **FLUX.1-schnell**
