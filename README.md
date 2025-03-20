@@ -229,5 +229,10 @@ python test.py
 
 ## 📚 Citation
 ```
-
+@article{wang2025unicombine,
+  title={UniCombine: Unified Multi-Conditional Combination with Diffusion Transformer},
+  author={Wang, Haoxuan and Peng, Jinlong and He, Qingdong and Yang, Hao and Jin, Ying and Wu, Jiafu and Hu, Xiaobin and Pan, Yanjie and Gan, Zhenye and Chi, Mingmin and others},
+  journal={arXiv preprint arXiv:2503.09277},
+  year={2025}
+}
 ```
