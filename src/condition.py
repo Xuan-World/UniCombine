@@ -9,14 +9,6 @@ from PIL import Image, ImageFilter
 import numpy as np
 import cv2
 
-condition_dict = {
-    "depth": 0,
-    "canny": 1,
-    "subject": 4,
-    "coloring": 6,
-    "deblurring": 7,
-    "fill": 9,
-}
 
 
 class Condition(object):
@@ -78,14 +70,9 @@ class Condition(object):
             return condition_image
         elif condition_type == "fill":
             return raw_img.convert("RGB")
-        return self.condition
+        else:
+            return raw_img.convert("RGB")
 
-    @property
-    def type_id(self) -> int:
-        """
-        Returns the type id of the condition.
-        """
-        return condition_dict[self.condition_type]
 
     def _encode_image(self, pipe: FluxPipeline, cond_img: Image.Image) -> tuple[Any, Any]:
         """
@@ -113,23 +100,14 @@ class Condition(object):
     def encode(self, pipe: FluxPipeline) -> tuple[Any, Any, Tensor]:
         """
         Encodes the condition into tokens, ids and type_id.
+        f"There are two ways to use it: \n"
+        f"(1) Give the condition tensor to the 'self.condition' and the condition_ids to the 'self.condition_ids' manually.\n"
+        f"(2) Give the raw_image to the 'self.raw_img' and process the rest operations with a pipeline automatically.\n"
         """
         if self.condition_ids is not None:
             tokens, ids = self.condition, self.condition_ids
-        elif self.condition_ids is None and self.condition_type in [
-            "depth",
-            "canny",
-            "subject",
-            "coloring",
-            "deblurring",
-            "fill",
-        ]:
-            tokens, ids = self._encode_image(pipe, self.condition)
         else:
-            raise NotImplementedError(
-                f"There are two ways to use it: \n"
-                f"(1) Give the condition tensor to the 'self.condition' and the condition_ids to the 'self.condition_ids' manually.\n"
-                f"(2) Give the raw_image to the 'self.raw_img' and process the rest operations with a pipeline automatically.\n"
-            )
-        type_id = torch.ones_like(ids[:, :1]) * self.type_id # the type_id is not used so far.
+            tokens, ids = self._encode_image(pipe, self.condition)
+
+        type_id = 0 # not used
         return tokens, ids, type_id

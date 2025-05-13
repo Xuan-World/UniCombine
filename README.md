@@ -207,7 +207,22 @@ python src/partition_dataset.py \
 --partition test
 ```
 ## 🧩 Train in single-conditional setting
-Refer to https://github.com/Yuanshi9815/OminiControl to train your **Condition-LoRA** modules.  We will release our reimplementation using diffusers soon.
+You can train custom Condition-LoRA models using the script in `demo_Condition_LoRA`. This simple process lets you develop new Condition-LoRA modules that extend UniCombine's features.
+
+Here we provide you an operation process to train a Style-LoRA. It won't be time-consuming because the training dataset is only about 10K images.
+
+1. Download the style transfer dataset proposed by StyleBooth.
+
+```
+https://modelscope.cn/models/iic/stylebooth/files
+```
+>It is worth noting that we fix the format errors of `train.csv` in the StyleBooth Dataset and provide you the fixed one at `demo_Condition_Lora/annotation.csv`.
+
+
+2. Write a custom Dataset Class like `demo_Condition_Lora/stylebooth_loader.py`
+
+3. Run `demo_Condition_Lora/train_cond_lora.py`.
+
 
 ## 🔥 Train in multi-conditional setting
 Use our SubjectSpatial200K dataset or your customized multi-conditional dataset to train your **Denoising-LoRA** module. 
