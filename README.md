@@ -53,12 +53,12 @@ huggingface-cli download black-forest-labs/FLUX.1-schnell --local-dir ./ckpt/FLU
 ```
 2. **Condition-LoRA**
 ```bash
-huggingface-cli download Xuan-World/UniCombine --include "Condition_LoRA/*" --local-dir ./ckpt/Condition_LoRA
+huggingface-cli download Xuan-World/UniCombine --include "Condition_LoRA/*" --local-dir ./ckpt
 ```
 
 3. **Denoising-LoRA**
 ```bash
-huggingface-cli download Xuan-World/UniCombine --include "Denoising_LoRA/*" --local-dir ./ckpt/Denoising_LoRA
+huggingface-cli download Xuan-World/UniCombine --include "Denoising_LoRA/*" --local-dir ./ckpt
 ```
 
 4. FLUX.1-schnell-training-assistant-LoRA (optional) 
