@@ -84,7 +84,7 @@ Default Prompts：
 ```bash
 python inference.py \
 --condition_types fill subject \
---denoising_lora ckpt/Denoising_LoRA/subject_fill_union \
+--denoising_lora_name subject_fill_union \
 --denoising_lora_weight 1.0 \
 --fill examples/window/background.jpg \
 --subject examples/window/subject.jpg \
@@ -97,7 +97,7 @@ Default Prompts：
 ```bash
 python inference.py \
 --condition_types canny subject \
---denoising_lora ckpt/Denoising_LoRA/subject_canny_union \
+--denoising_lora_name subject_canny_union \
 --denoising_lora_weight 1.0 \
 --canny examples/doll/canny.jpg \
 --subject examples/doll/subject.jpg \
@@ -108,7 +108,7 @@ Custom Prompts：
 ```bash
 python inference.py \
 --condition_types canny subject \
---denoising_lora ckpt/Denoising_LoRA/subject_canny_union \
+--denoising_lora_name subject_canny_union \
 --denoising_lora_weight 0.6 \
 --canny examples/doll/canny.jpg \
 --subject examples/doll/subject.jpg \
@@ -122,7 +122,7 @@ Default Prompts：
 ```bash
 python inference.py \
 --condition_types depth subject \
---denoising_lora ckpt/Denoising_LoRA/subject_depth_union \
+--denoising_lora_name subject_depth_union \
 --denoising_lora_weight 1.0 \
 --depth examples/car/depth.jpg \
 --subject examples/car/subject.jpg \
@@ -133,7 +133,7 @@ Custom Prompts：
 ```bash
 python inference.py \
 --condition_types depth subject \
---denoising_lora ckpt/Denoising_LoRA/subject_depth_union \
+--denoising_lora_name subject_depth_union \
 --denoising_lora_weight 0.6 \
 --depth examples/car/depth.jpg \
 --subject examples/car/subject.jpg \
@@ -147,7 +147,7 @@ Default Prompts：
 ```bash
 python inference.py \
 --condition_types depth canny \
---denoising_lora ckpt/Denoising_LoRA/depth_canny_union \
+--denoising_lora_name depth_canny_union \
 --denoising_lora_weight 1.0 \
 --depth examples/toy/depth.jpg \
 --canny examples/toy/canny.jpg \
@@ -158,7 +158,7 @@ Custom Prompts：
 ```bash
 python inference.py \
 --condition_types depth canny \
---denoising_lora ckpt/Denoising_LoRA/depth_canny_union \
+--denoising_lora_name depth_canny_union \
 --denoising_lora_weight 0.6 \
 --depth examples/toy/depth.jpg \
 --canny examples/toy/canny.jpg \

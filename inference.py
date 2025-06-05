@@ -22,7 +22,8 @@ def parse_args(input_args=None):
     parser.add_argument("--pretrained_model_name_or_path", type=str,default="ckpt/FLUX.1-schnell",)
     parser.add_argument("--transformer",type=str,default="ckpt/FLUX.1-schnell/transformer",)
     parser.add_argument("--condition_types", type=str, nargs='+', default=["fill","subject"],)
-    parser.add_argument("--denoising_lora",type=str,default="ckpt/Denoising_LoRA/subject_fill_union",)
+    parser.add_argument("--denoising_lora_dir",type=str,default="ckpt/Denoising_LoRA",)
+    parser.add_argument("--denoising_lora_name",type=str,default="subject_fill_union",)
     parser.add_argument("--denoising_lora_weight",type=float,default=1.0,)
     parser.add_argument("--condition_lora_dir",type=str,default="ckpt/Condition_LoRA",)
     parser.add_argument("--work_dir",type=str,default="output/inference_result",)
@@ -34,7 +35,6 @@ def parse_args(input_args=None):
     parser.add_argument("--subject",type=str,default="examples/window/subject.jpg")
     parser.add_argument("--json",type=str,default="examples/window/1634_rank0_A decorative fabric topper for windows..json")
     parser.add_argument("--prompt",type=str,default=None)
-    parser.add_argument("--num",type=int,default=1)
     parser.add_argument("--version",type=str,default="training-based",choices=["training-based","training-free"])
 
     args = parser.parse_args()
@@ -43,14 +43,16 @@ def parse_args(input_args=None):
     args.json = json.load(open(args.json))
     if args.prompt is None:
         args.prompt = args.json['description']
-    args.denoising_lora_name = os.path.basename(os.path.normpath(args.denoising_lora))
     return args
 
+def convert_image(image):
+    return image if isinstance(image, Image.Image) else Image.open(image)
 
-
-
-if __name__ == "__main__":
-    args = parse_args()
+def inference(args):
+    if args.seed is not None:
+        set_seed(args.seed)
+    # load prompt
+    prompt = args.prompt
     transformer = UniCombineTransformer2DModel.from_pretrained(
             pretrained_model_name_or_path=args.transformer,
     ).to(device = device, dtype=weight_dtype)
@@ -66,7 +68,7 @@ if __name__ == "__main__":
     pipe.transformer = transformer
 
     if args.version == "training-based":
-        pipe.transformer.load_lora_adapter(args.denoising_lora,adapter_name=args.denoising_lora_name, use_safetensors=True)
+        pipe.transformer.load_lora_adapter(os.path.join(args.denoising_lora_dir,args.denoising_lora_name),adapter_name=args.denoising_lora_name, use_safetensors=True)
         pipe.transformer.set_adapters([i for i in args.condition_types] + [args.denoising_lora_name],[1.0,1.0,args.denoising_lora_weight])
     elif args.version == "training-free":
         pipe.transformer.set_adapters([i for i in args.condition_types])
@@ -79,28 +81,17 @@ if __name__ == "__main__":
     conditions = []
     for condition_type in args.condition_types:
         if condition_type == "subject":
-            conditions.append(Condition("subject", raw_img=Image.open(args.subject), no_process=True))
+            conditions.append(Condition("subject", raw_img=convert_image(args.subject), no_process=True))
         elif condition_type == "canny":
-            conditions.append(Condition("canny", raw_img=Image.open(args.canny), no_process=True))
+            conditions.append(Condition("canny", raw_img=convert_image(args.canny), no_process=True))
         elif condition_type == "depth":
-            conditions.append(Condition("depth", raw_img=Image.open(args.depth), no_process=True))
+            conditions.append(Condition("depth", raw_img=convert_image(args.depth), no_process=True))
         elif condition_type == "fill":
-            conditions.append(Condition("fill", raw_img=Image.open(args.fill), no_process=True))
+            conditions.append(Condition("fill", raw_img=convert_image(args.fill), no_process=True))
         else:
             raise ValueError("Only support for subject, canny, depth, fill so far.")
-
-    # load prompt
-    prompt = args.prompt
-
-    if args.seed is not None:
-        set_seed(args.seed)
-
-    output_dir = os.path.join(args.work_dir, datetime.now().strftime('%y_%m_%d-%H:%M'))
-    os.makedirs(output_dir, exist_ok=True)
-
-    # generate
-    for i in range(args.num):
-        result_img = pipe(
+    
+    result_img = pipe(
             prompt=prompt,
             conditions=conditions,
             height=512,
@@ -109,14 +100,23 @@ if __name__ == "__main__":
             max_sequence_length=512,
             model_config = {},
         ).images[0]
+    return result_img,conditions
 
-        concat_image = Image.new("RGB", (512 + len(args.condition_types) * 512, 512))
-        for j, cond_type in enumerate(args.condition_types):
-            cond_image = conditions[j].condition
-            if cond_type == "fill":
-                cond_image = cv2.rectangle(np.array(cond_image), args.json['bbox'][:2], args.json['bbox'][2:], color=(128, 128, 128),thickness=-1)
-                cond_image = Image.fromarray(cv2.rectangle(cond_image, args.json['bbox'][:2], args.json['bbox'][2:], color=(255, 215, 0), thickness=2))
-            concat_image.paste(cond_image, (j * 512, 0))
-        concat_image.paste(result_img, (j * 512 + 512, 0))
-        concat_image.save(os.path.join(output_dir, f"{i}_result.jpg"))
-        print(f"Done. Output saved at {output_dir}/{i}_result.jpg")
+
+if __name__ == "__main__":
+    args = parse_args()
+
+    output_dir = os.path.join(args.work_dir, datetime.now().strftime('%y_%m_%d-%H:%M'))
+    os.makedirs(output_dir, exist_ok=True)
+
+    result_img,conditions = inference(args)
+    concat_image = Image.new("RGB", (512 + len(args.condition_types) * 512, 512))
+    for j, cond_type in enumerate(args.condition_types):
+        cond_image = conditions[j].condition
+        if cond_type == "fill":
+            cond_image = cv2.rectangle(np.array(cond_image), args.json['bbox'][:2], args.json['bbox'][2:], color=(128, 128, 128),thickness=-1)
+            cond_image = Image.fromarray(cv2.rectangle(cond_image, args.json['bbox'][:2], args.json['bbox'][2:], color=(255, 215, 0), thickness=2))
+        concat_image.paste(cond_image, (j * 512, 0))
+    concat_image.paste(result_img, (j * 512 + 512, 0))
+    concat_image.save(os.path.join(output_dir, "result.jpg"))
+    print(f"Done. Output saved at {output_dir}/result.jpg")
