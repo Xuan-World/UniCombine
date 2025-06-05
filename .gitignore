@@ -1,0 +1,29 @@
+# Python 编译缓存
+__pycache__/
+
+# 虚拟环境
+venv/
+env/
+.venv/
+
+# 依赖文件
+*.egg-info/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# 编辑器/IDE 配置
+.idea/
+.vscode/
+*.sublime-workspace
+
+# 日志文件
+*.log
+
+# 临时文件
+*.swp
+*.bak
+
+# custom
+ckpt/
+output/
+.gradio/
