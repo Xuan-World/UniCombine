@@ -1,5 +1,6 @@
 transformers
 diffusers
+datasets
 peft
 opencv-python
 ipdb
