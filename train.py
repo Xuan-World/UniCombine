@@ -137,7 +137,7 @@ def parse_args(input_args=None):
     args = parser.parse_args()
     args.revision = None
     args.variant = None
-    args.work_dir = os.path.join(args.work_dir,f"{datetime.now().strftime("%y_%m_%d-%H:%M")}")
+    args.work_dir = os.path.join(args.work_dir,f"{datetime.now().strftime('%y_%m_%d-%H:%M')}")
     env_local_rank = int(os.environ.get("LOCAL_RANK", -1))
     if env_local_rank != -1 and env_local_rank != args.local_rank:
         args.local_rank = env_local_rank
