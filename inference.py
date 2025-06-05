@@ -95,7 +95,7 @@ if __name__ == "__main__":
     if args.seed is not None:
         set_seed(args.seed)
 
-    output_dir = os.path.join(args.work_dir, f"{datetime.now().strftime('%y_%m_%d-%H:%M')}")
+    output_dir = os.path.join(args.work_dir, datetime.now().strftime('%y_%m_%d-%H:%M'))
     os.makedirs(output_dir, exist_ok=True)
 
     # generate

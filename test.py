@@ -171,7 +171,7 @@ def main(args):
         disable=not accelerator.is_local_main_process,
     )
 
-    output_dir = os.path.join(args.work_dir, f"{datetime.now().strftime('%y:%m:%d-%H:%M')}")
+    output_dir = os.path.join(args.work_dir, datetime.now().strftime('%y_%m_%d-%H:%M'))
     logger.info(f"output dir: {output_dir}")
     os.makedirs(os.path.join(output_dir, "info"), exist_ok=True)
 
