@@ -13,14 +13,14 @@ with gr.Blocks() as demo:
             version = gr.Radio(["training-based", "training-free"], label="版本", value="training-based")
             denoising_lora = gr.Radio(["subject_fill_union", "depth_canny_union", "subject_depth_union", "subject_canny_union"], label="Denoising LoRA 选择")
             denoising_lora_weight = gr.Number(value=1.0, label="Denoising LoRA 权重")
+            output_image = gr.Image(label="推理结果")
+
+        with gr.Column():
             fill = gr.Image(type="pil", label="背景图", visible=False)
             subject = gr.Image(type="pil", label="主体图", visible=False)
             canny = gr.Image(type="pil", label="边缘图", visible=False)
             depth = gr.Image(type="pil", label="深度图", visible=False)
-
-        with gr.Column():
-            output_image = gr.Image(label="推理结果")
-
+            
     def update_image_inputs(condition_types):
         fill_visible = "fill" in condition_types
         subject_visible = "subject" in condition_types
