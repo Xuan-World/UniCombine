@@ -79,6 +79,7 @@ huggingface-cli download ostris/FLUX.1-schnell-training-adapter --local-dir ./ck
 - We provide the `inference.py` script to offer a simplest and fastest way for you to run our model. <br>
 - Replace the arguments `--version` from `training-based` to `training-free`, then you don't need to provide the **Denoising-LoRA** module.
 - Adjust the scale of `--denoising_lora_weight` to get a balance between the editability and the consistency when using Custom Prompts.
+- News! We now provide the Gradio APP for you. Run the `app.py` and try it out!
 ### 1. Subject-Insertion
 Default Prompts：
 ```bash

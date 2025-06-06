@@ -38,6 +38,7 @@ with gr.Blocks() as demo:
             condition_types=condition_types,
             denoising_lora_name=denoising_lora,
             denoising_lora_weight=denoising_lora_weight,
+            denoising_lora_dir = "ckpt/Denoising_LoRA",
             condition_lora_dir="ckpt/Condition_LoRA",
             work_dir="output/inference_result",
             seed=0,
