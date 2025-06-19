@@ -27,3 +27,6 @@ pip-delete-this-directory.txt
 ckpt/
 output/
 .gradio/
+
+# 其他
+mmchi/
