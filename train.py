@@ -356,8 +356,8 @@ def main(args):
     logger.info(f"lr_scheduler:{args.lr_scheduler} initialized successfully.")
 
     with preserve_requires_grad(transformer):
-        transformer.set_adapters([i for i in lora_names] + [args.output_denoising_lora] + ["schnell_assistant"])
-    logger.info(f"Set Adapters:{[i for i in lora_names] + [args.output_denoising_lora] + ["schnell_assistant"]}")
+        transformer.set_adapters([i for i in lora_names] + [args.output_denoising_lora] + ['schnell_assistant'])
+    logger.info(f"Set Adapters:{[i for i in lora_names] + [args.output_denoising_lora] + ['schnell_assistant']}")
 
     # Prepare everything with our `accelerator`.
     transformer, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
