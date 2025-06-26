@@ -8,6 +8,8 @@
 <a href="https://arxiv.org/abs/2503.09277"><img src="https://img.shields.io/badge/arXiv-2503.09277-A42C25.svg" alt="arXiv"></a>
 <a href="https://huggingface.co/Xuan-World/UniCombine"><img src="https://img.shields.io/badge/🤗_HuggingFace-Model-ffbd45.svg" alt="HuggingFace"></a>
 <a href="https://huggingface.co/datasets/Xuan-World/SubjectSpatial200K"><img src="https://img.shields.io/badge/🤗_HuggingFace-Dataset-ffbd45.svg" alt="HuggingFace"></a>
+
+<h3>🎉 Accepted by ICCV 2025</h3>
 </div>
 
 ## 🌠 Key Features
