@@ -36,7 +36,7 @@ def parse_args(input_args=None):
     parser.add_argument("--json",type=str,default="examples/window/1634_rank0_A decorative fabric topper for windows..json")
     parser.add_argument("--prompt",type=str,default=None)
     parser.add_argument("--version",type=str,default="training-based",choices=["training-based","training-free"])
-
+    parser.add_argument("--need_preprocess",action="store_true",default=False)
     args = parser.parse_args()
     args.revision = None
     args.variant = None
@@ -76,18 +76,20 @@ def inference(args):
     pipe = pipe.to(device)
 
     # load conditions
-    # "no_process = True" means there is no need to run the canny or depth extraction or any other preparation for the input conditional images.
+    # "need_preprocess = False" means there is no need to run the canny or depth extraction or any other preparation for the input conditional images.
     # which means the input conditional images can be used directly.
     conditions = []
     for condition_type in args.condition_types:
         if condition_type == "subject":
-            conditions.append(Condition("subject", raw_img=convert_image(args.subject), no_process=True))
+            conditions.append(Condition("subject", raw_img=convert_image(args.subject), need_preprocess=args.need_preprocess))
         elif condition_type == "canny":
-            conditions.append(Condition("canny", raw_img=convert_image(args.canny), no_process=True))
+            conditions.append(Condition("canny", raw_img=convert_image(args.canny), need_preprocess=args.need_preprocess))
         elif condition_type == "depth":
-            conditions.append(Condition("depth", raw_img=convert_image(args.depth), no_process=True))
+            conditions.append(Condition("depth", raw_img=convert_image(args.depth), need_preprocess=args.need_preprocess))
         elif condition_type == "fill":
-            conditions.append(Condition("fill", raw_img=convert_image(args.fill), no_process=True))
+            if args.need_preprocess:
+                args.fill = convert_image(args.fill).paste((0,0,0),args.json["bbox"])
+            conditions.append(Condition("fill", raw_img=convert_image(args.fill), need_preprocess=args.need_preprocess))
         else:
             raise ValueError("Only support for subject, canny, depth, fill so far.")
     

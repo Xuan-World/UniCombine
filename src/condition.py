@@ -16,7 +16,7 @@ class Condition(object):
         self,
         condition_type: str,
         raw_img: Union[Image.Image, torch.Tensor] = None,
-        no_process: bool = False,
+        need_preprocess: bool = False,
         condition: Union[Image.Image, torch.Tensor] = None,
         condition_ids = None,
         mask=None,
@@ -24,10 +24,10 @@ class Condition(object):
         self.condition_type = condition_type
         assert raw_img is not None or condition is not None
         if raw_img is not None:
-            if no_process:
-                self.condition = raw_img.convert("RGB")
-            else:
+            if need_preprocess:
                 self.condition = self.get_condition(condition_type, raw_img)
+            else:
+                self.condition = raw_img.convert("RGB")
             self.condition_ids = None
         else:
             self.condition = condition
